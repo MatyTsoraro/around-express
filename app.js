@@ -5,6 +5,10 @@ const cards = require('./cards.json');
 const app = express();
 const port = 3000;
 
+//const path = require('path');
+//const usersFilePath = path.resolve(__dirname, 'users.json');
+
+
 // Route to get all users
 app.get('/users', (req, res) => {
   res.json(users);
