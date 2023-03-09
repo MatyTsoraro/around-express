@@ -1,0 +1,43 @@
+{
+  "name": "around-express",
+  "version": "1.0.0",
+  "description": "An introduction to working with Node.js & Express, this project focuses on back-end data management.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "npx eslint .",
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MatyTsoraro/around-express.git"
+  },
+  "author": "Maty Tsoraro",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MatyTsoraro/around-express/issues"
+  },
+  "homepage": "https://github.com/MatyTsoraro/around-express#readme",
+  "devDependencies": {
+    "eslint": "^8.35.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "nodemon": "^2.0.21"
+  },
+  "eslintConfig": {
+    "extends": "airbnb-base",
+    "rules": {
+      "no-underscore-dangle": [
+        "error",
+        {
+          "allow": [
+            "_id"
+          ]
+        }
+      ]
+    }
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
