@@ -1,30 +1,18 @@
-const express = require('express');
-const readUsers = require('../helpers/readUsers');
-const findUserById = require('../helpers/findUserById');
+const path = require('path');
+const fs = require('fs');
 
-const router = express.Router();
+const usersPath = path.join(__dirname, '..', 'data', 'users.json');
 
-router.get('/', (req, res) => {
-  readUsers()
-    .then((users) => res.json(users))
-    .catch(() =>
-      res.status(500).json({ message: 'An error has occurred on the server' })
-    );
-});
-
-router.get('/:id', (req, res) => {
-  const { id } = req.params;
-
-  findUserById(id)
-    .then((user) => {
-      if (!user) {
-        return res.status(404).json({ message: `User ID ${id} not found` });
+const readUsers = () => {
+  return new Promise((resolve, reject) => {
+    fs.readFile(usersPath, { encoding: 'utf8' }, (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(JSON.parse(data));
       }
-      return res.json(user);
-    })
-    .catch(() =>
-      res.status(500).json({ message: 'An error has occurred on the server' })
-    );
-});
+    });
+  });
+};
 
-module.exports = router;
+module.exports = readUsers;

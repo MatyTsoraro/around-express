@@ -1,19 +1,23 @@
 const express = require('express');
-const usersRouter = require('./routes/users');
-const cardsRouter = require('./routes/cards');
+const readCards = require('./routes/cards');
+const readUsers = require('./routes/users');
 
 const app = express();
-const port = 3000;
 
-app.use(express.json());
-
-app.use('/users', usersRouter);
-app.use('/cards', cardsRouter);
-
-app.use((req, res) => {
-  res.status(404).json({ message: 'Requested resource not found' });
+app.get('/cards', (req, res) => {
+  readCards()
+    .then((data) => res.send(data))
+    .catch(() =>
+      res.status(500).send({ message: 'An error has occurred on the server.' })
+    );
 });
 
-app.listen(port, () => {
-  console.log(`Server is listening on port ${port}`);
+app.get('/users', (req, res) => {
+  readUsers()
+    .then((data) => res.send(data))
+    .catch(() =>
+      res.status(500).send({ message: 'An error has occurred on the server.' })
+    );
 });
+
+app.listen(3000, () => console.log('Server is listening on port 3000'));
