@@ -1,18 +1,14 @@
-const path = require('path');
-const fs = require('fs');
+const express = require('express');
+const readCards = require('../helpers/readCards');
 
-const cardsPath = path.join(__dirname, '..', 'data', 'cards.json');
+const router = express.Router();
 
-const readCards = () => {
-  return new Promise((resolve, reject) => {
-    fs.readFile(cardsPath, { encoding: 'utf8' }, (err, data) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(JSON.parse(data));
-      }
-    });
-  });
-};
+router.get('/', (req, res) => {
+  readCards()
+    .then((cards) => res.json(cards))
+    .catch(() =>
+      res.status(500).json({ message: 'An error has occurred on the server' })
+    );
+});
 
-module.exports = readCards;
+module.exports = router;
