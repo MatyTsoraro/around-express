@@ -29,6 +29,7 @@
     "nodemon": "^2.0.21"
   },
   "dependencies": {
+    "eslint-auto-fix": "^1.0.4",
     "express": "^4.18.2"
   }
 }

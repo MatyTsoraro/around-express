@@ -18,8 +18,14 @@ app.get('/users', (req, res) => {
 
 app.get('/users/:id', (req, res) => {
   const { id } = req.params;
-  readUsers(id)
-    .then((data) => res.send(data))
+  return readUsers()
+    .then((data) => {
+      const user = data.find((u) => u._id === id);
+      if (!user) {
+        return res.status(404).send({ message: 'User not found' });
+      }
+      return res.send(user);
+    })
     .catch(() => res.status(500).send({ message: 'An error has occurred on the server.' }));
 });
 
