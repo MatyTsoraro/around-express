@@ -13,15 +13,15 @@ db.once('open', () => {
 });
 
 const express = require('express');
+const app = express(); // Define app here
+
 const users = require('./routes/users'); // Import the users router
 app.use('/users', users); // Use the users router for requests starting with /users
-
 
 const readCards = require('./routes/cards');
 const readUsers = require('./routes/users');
 
-const app = express();
-
+// Define your route handlers here
 app.get('/cards', (req, res) => {
   readCards()
     .then((data) => res.send(data))
@@ -47,8 +47,10 @@ app.get('/users/:id', (req, res) => {
     .catch(() => res.status(500).send({ message: 'An error has occurred on the server.' }));
 });
 
+// Handle 404 errors
 app.use((req, res) => {
   res.status(404).send({ message: 'Requested resource not found' });
 });
 
+// Start the server
 app.listen(3000, () => console.log('Server is listening on port 3000'));
