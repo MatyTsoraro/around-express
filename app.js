@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost:27017/aroundb', {
   useNewUrlParser: true,
-  useCreateIndex: true,
-  useFindAndModify: false,
+  //useCreateIndex: true, // This option is no longer needed in Mongoose 6
+  //useFindAndModify: false, // This option is no longer needed in Mongoose 6
   useUnifiedTopology: true,
 });
 
@@ -13,30 +13,33 @@ db.once('open', () => {
 });
 
 const express = require('express');
-const app = express(); // Define app here
-
 const users = require('./routes/users'); // Import the users router
 app.use('/users', users); // Use the users router for requests starting with /users
 
+// The following two lines are importing the same module.
 const readCards = require('./routes/cards');
 const readUsers = require('./routes/users');
 
-// Define your route handlers here
+const app = express();
+
+// The following route is using the readCards module, but it is not imported.
 app.get('/cards', (req, res) => {
-  readCards()
+  readCards() // This will throw an error because readCards is not defined
     .then((data) => res.send(data))
     .catch(() => res.status(500).send({ message: 'An error has occurred on the server.' }));
 });
 
+// The following route is using the readUsers module correctly.
 app.get('/users', (req, res) => {
   readUsers()
     .then((data) => res.send(data))
     .catch(() => res.status(500).send({ message: 'An error has occurred on the server.' }));
 });
 
+// The following route is trying to get a single user by ID, but it is not using the database.
 app.get('/users/:id', (req, res) => {
   const { id } = req.params;
-  return readUsers()
+  return readUsers() // This will throw an error because readUsers is not defined
     .then((data) => {
       const user = data.find((u) => u._id === id);
       if (!user) {
@@ -47,10 +50,9 @@ app.get('/users/:id', (req, res) => {
     .catch(() => res.status(500).send({ message: 'An error has occurred on the server.' }));
 });
 
-// Handle 404 errors
+// The following route will handle all requests that do not match the above routes.
 app.use((req, res) => {
   res.status(404).send({ message: 'Requested resource not found' });
 });
 
-// Start the server
 app.listen(3000, () => console.log('Server is listening on port 3000'));
