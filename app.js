@@ -13,6 +13,10 @@ db.once('open', () => {
 });
 
 const express = require('express');
+const users = require('./routes/users'); // Import the users router
+app.use('/users', users); // Use the users router for requests starting with /users
+
+
 const readCards = require('./routes/cards');
 const readUsers = require('./routes/users');
 
