@@ -1,56 +1,51 @@
 const mongoose = require('mongoose');
+const express = require('express');
+const users = require('./routes/users');
+const cards = require('./routes/cards');
+const app = express();
+
 mongoose.connect('mongodb://localhost:27017/aroundb', {
   useNewUrlParser: true,
   //useCreateIndex: true, // This option is no longer needed in Mongoose 6
   //useFindAndModify: false, // This option is no longer needed in Mongoose 6
   useUnifiedTopology: true,
-});
-
-const db = mongoose.connection;
-db.on('error', console.error.bind(console, 'connection error:'));
-db.once('open', () => {
+}).then(() => {
   console.log('Connected to MongoDB database');
+}).catch((err) => {
+  console.error(`Error connecting to MongoDB database: ${err}`);
 });
 
-const express = require('express');
-const users = require('./routes/users'); // Import the users router
-app.use('/users', users); // Use the users router for requests starting with /users
-
-// The following two lines are importing the same module.
-const readCards = require('./routes/cards');
-const readUsers = require('./routes/users');
-
-const app = express();
-
-// The following route is using the readCards module, but it is not imported.
+// The following route uses the cards module correctly.
 app.get('/cards', (req, res) => {
-  readCards() // This will throw an error because readCards is not defined
+  cards.readCards()
     .then((data) => res.send(data))
     .catch(() => res.status(500).send({ message: 'An error has occurred on the server.' }));
 });
 
-// The following route is using the readUsers module correctly.
+// The following route uses the users module correctly.
 app.get('/users', (req, res) => {
-  readUsers()
+  users.readUsers()
     .then((data) => res.send(data))
     .catch(() => res.status(500).send({ message: 'An error has occurred on the server.' }));
 });
 
-// The following route is trying to get a single user by ID, but it is not using the database.
+// The following route gets a single user by ID using the database.
 app.get('/users/:id', (req, res) => {
   const { id } = req.params;
-  return readUsers() // This will throw an error because readUsers is not defined
-    .then((data) => {
-      const user = data.find((u) => u._id === id);
+  users.User.findById(id)
+    .then((user) => {
       if (!user) {
         return res.status(404).send({ message: 'User not found' });
       }
       return res.send(user);
     })
-    .catch(() => res.status(500).send({ message: 'An error has occurred on the server.' }));
+    .catch((err) => {
+      console.error(`Error getting user with ID ${id}: ${err}`);
+      res.status(500).send({ message: 'An error has occurred on the server.' });
+    });
 });
 
-// The following route will handle all requests that do not match the above routes.
+// The following route handles all requests that do not match the above routes.
 app.use((req, res) => {
   res.status(404).send({ message: 'Requested resource not found' });
 });
