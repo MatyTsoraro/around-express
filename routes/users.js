@@ -1,18 +1,16 @@
-const path = require('path');
-const fs = require('fs');
+// Import the User model from models/user.js
+const User = require('../models/user');
 
-const usersPath = path.join(__dirname, '..', 'data', 'users.json');
+// The following function reads all users from the database.
+const readUsers = () => {
+  return User.find({});
+};
 
-const readUsers = () => new Promise((resolve, reject) => {
-  fs.readFile(usersPath, { encoding: 'utf8' }, (err, data) => {
-    if (err) {
-      reject(err);
-    } else {
-      resolve(JSON.parse(data));
-    }
-  });
-});
+// The following function creates a new user in the database.
+const createUser = (name, about, avatar) => {
+  return User.create({ name, about, avatar });
+};
 
-
-
-module.exports = readUsers;
+module.exports.readUsers = readUsers;
+module.exports.createUser = createUser;
+module.exports.User = User;

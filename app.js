@@ -1,10 +1,14 @@
+
+
+
 const mongoose = require('mongoose');
 const express = require('express');
 const users = require('./routes/users');
 const cards = require('./routes/cards');
 const app = express();
+app.use(express.json());
 
-mongoose.connect('mongodb://localhost:27017/aroundb', {
+mongoose.connect('mongodb://127.0.0.1:27017/aroundb', {
   useNewUrlParser: true,
   //useCreateIndex: true, // This option is no longer needed in Mongoose 6
   //useFindAndModify: false, // This option is no longer needed in Mongoose 6
@@ -29,6 +33,17 @@ app.get('/users', (req, res) => {
     .catch(() => res.status(500).send({ message: 'An error has occurred on the server.' }));
 });
 
+// The following route creates a new user using the database.
+app.post('/users', (req, res) => {
+  const { name, about, avatar } = req.body;
+  users.User.create({ name, about, avatar })
+    .then((user) => res.send(user))
+    .catch((err) => {
+      console.error(`Error creating user: ${err}`);
+      res.status(500).send({ message: 'An error has occurred on the server.' });
+    });
+});
+
 // The following route gets a single user by ID using the database.
 app.get('/users/:id', (req, res) => {
   const { id } = req.params;
@@ -51,3 +66,5 @@ app.use((req, res) => {
 });
 
 app.listen(3000, () => console.log('Server is listening on port 3000'));
+
+
