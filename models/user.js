@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const validator = require('validator');
+const validator = require('validator'); // שים לב שאני משתמש באותיות קטנות
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema({
     validate: {
       validator: function(v) {
         // Regex to validate URL format
-        return /^(https?:\/\/)(www\.)?([\w\-\.]+)\.([a-z]{2,6})(\/[\w\-\.~:?#[\]@!$&'()*+,;=]*)?#?$/.test(v);
+        return validator.isURL(v);
       },
       message: 'Invalid URL format'
     }
@@ -28,3 +28,5 @@ const userSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('user', userSchema);
+
+
