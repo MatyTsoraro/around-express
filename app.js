@@ -1,6 +1,5 @@
 
 
-
 const mongoose = require('mongoose');
 const express = require('express');
 const users = require('./routes/users');
@@ -17,6 +16,15 @@ mongoose.connect('mongodb://127.0.0.1:27017/aroundb', {
   console.log('Connected to MongoDB database');
 }).catch((err) => {
   console.error(`Error connecting to MongoDB database: ${err}`);
+});
+
+// The following middleware adds a user object to each request.
+app.use((req, res, next) => {
+  req.user = {
+    _id: '642336d883cf88e0204620bd' // paste the _id of the test user created in the previous step
+  };
+
+  next();
 });
 
 // The following route uses the cards module correctly.
@@ -60,11 +68,29 @@ app.get('/users/:id', (req, res) => {
     });
 });
 
-// The following route handles all requests that do not match the above routes.
-app.use((req, res) => {
-  res.status(404).send({ message: 'Requested resource not found' });
+// The following route deletes a card by ID using the database.
+app.delete('/cards/:cardId', (req, res) => {
+  const { cardId } = req.params;
+  cards.Card.findByIdAndDelete(cardId)
+    .then((card) => {
+      if (!card) {
+        return res.status(404).send({ message: 'Card not found' });
+      }
+      return res.send(card);
+    })
+    .catch((err) => {
+      console.error(`Error deleting card with ID ${cardId}: ${err}`);
+      res.status(500).send({ message: 'An error has occurred on the server.' });
+    });
 });
 
-app.listen(3000, () => console.log('Server is listening on port 3000'));
-
-
+// The following route creates a new card using the database.
+app.post('/cards', (req, res) => {
+  const { name, link } = req.body;
+  cards.Card.create({ name, link })
+    .then((card) => res.send(card))
+    .catch((err) => {
+      console.error(`Error creating card: ${err}`);
+      res.status(500).send({ message: 'An error has occurred on the server.' });
+    });
+});
