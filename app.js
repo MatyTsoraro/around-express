@@ -1,9 +1,10 @@
-
-
 const mongoose = require('mongoose');
 const express = require('express');
-const users = require('./routes/users');
-const cards = require('./routes/cards');
+// Import the users and cards controllers
+const users = require('./controllers/users');
+const cards = require('./controllers/cards');
+// Import the cards router
+const cardsRouter = require('./routes/cards');
 const app = express();
 app.use(express.json());
 
@@ -42,55 +43,25 @@ app.get('/users', (req, res) => {
 });
 
 // The following route creates a new user using the database.
-app.post('/users', (req, res) => {
-  const { name, about, avatar } = req.body;
-  users.User.create({ name, about, avatar })
-    .then((user) => res.send(user))
-    .catch((err) => {
-      console.error(`Error creating user: ${err}`);
-      res.status(500).send({ message: 'An error has occurred on the server.' });
-    });
-});
+app.post('/users', users.createUser);
 
 // The following route gets a single user by ID using the database.
-app.get('/users/:id', (req, res) => {
-  const { id } = req.params;
-  users.User.findById(id)
-    .then((user) => {
-      if (!user) {
-        return res.status(404).send({ message: 'User not found' });
-      }
-      return res.send(user);
-    })
-    .catch((err) => {
-      console.error(`Error getting user with ID ${id}: ${err}`);
-      res.status(500).send({ message: 'An error has occurred on the server.' });
-    });
-});
+app.get('/users/:id', users.getUserById);
+
+// The following route updates the profile using the database.
+app.patch('/users/me', users.updateProfile);
+
+// The following route updates the avatar using the database.
+app.patch('/users/me/avatar', users.updateAvatar);
 
 // The following route deletes a card by ID using the database.
-app.delete('/cards/:cardId', (req, res) => {
-  const { cardId } = req.params;
-  cards.Card.findByIdAndDelete(cardId)
-    .then((card) => {
-      if (!card) {
-        return res.status(404).send({ message: 'Card not found' });
-      }
-      return res.send(card);
-    })
-    .catch((err) => {
-      console.error(`Error deleting card with ID ${cardId}: ${err}`);
-      res.status(500).send({ message: 'An error has occurred on the server.' });
-    });
-});
+app.delete('/cards/:cardId', cards.deleteCardById);
 
-// The following route creates a new card using the database.
-app.post('/cards', (req, res) => {
-  const { name, link } = req.body;
-  cards.Card.create({ name, link })
-    .then((card) => res.send(card))
-    .catch((err) => {
-      console.error(`Error creating card: ${err}`);
-      res.status(500).send({ message: 'An error has occurred on the server.' });
-    });
-});
+// The following route likes a card by ID using the database.
+app.put('/cards/:cardId/likes', cards.likeCard);
+
+// The following route unlikes a card by ID using the database.
+app.delete('/cards/:cardId/likes', cards.unlikeCard);
+
+// The following route gets a card by ID using the database.
+app.use('/cards', cardsRouter);
