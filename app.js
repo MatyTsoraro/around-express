@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const express = require('express');
 // Import the users and cards controllers
-const users = require('./controllers/users');
+const users = require('./controllers/users.js');
 const cards = require('./controllers/cards');
 // Import the cards and users routers
 const cardsRouter = require('./routes/cards');
@@ -32,9 +32,8 @@ app.use('/cards', cardsRouter);
 
 // Mount the users router on '/users' path
 app.use('/users', usersRouter);
-
 // The following route creates a new user using the database.
-app.post('/users', users.createUser);
+app.post('/users', users.create);
 
 // The following route gets a single user by ID using the database.
 app.get('/users/:id', users.getUserById);

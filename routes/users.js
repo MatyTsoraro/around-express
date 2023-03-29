@@ -25,3 +25,6 @@ module.exports = {
   readUsers,
   createUser,
 };
+
+module.exports = router;
+module.exports.createUser = createUser;
