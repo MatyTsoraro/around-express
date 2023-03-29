@@ -3,15 +3,14 @@ const express = require('express');
 // Import the users and cards controllers
 const users = require('./controllers/users');
 const cards = require('./controllers/cards');
-// Import the cards router
+// Import the cards and users routers
 const cardsRouter = require('./routes/cards');
+const usersRouter = require('./routes/users');
 const app = express();
 app.use(express.json());
 
 mongoose.connect('mongodb://127.0.0.1:27017/aroundb', {
   useNewUrlParser: true,
-  //useCreateIndex: true, // This option is no longer needed in Mongoose 6
-  //useFindAndModify: false, // This option is no longer needed in Mongoose 6
   useUnifiedTopology: true,
 }).then(() => {
   console.log('Connected to MongoDB database');
@@ -28,19 +27,11 @@ app.use((req, res, next) => {
   next();
 });
 
-// The following route uses the cards module correctly.
-app.get('/cards', (req, res) => {
-  cards.readCards()
-    .then((data) => res.send(data))
-    .catch(() => res.status(500).send({ message: 'An error has occurred on the server.' }));
-});
+// Mount the cards router on '/cards' path
+app.use('/cards', cardsRouter);
 
-// The following route uses the users module correctly.
-app.get('/users', (req, res) => {
-  users.readUsers()
-    .then((data) => res.send(data))
-    .catch(() => res.status(500).send({ message: 'An error has occurred on the server.' }));
-});
+// Mount the users router on '/users' path
+app.use('/users', usersRouter);
 
 // The following route creates a new user using the database.
 app.post('/users', users.createUser);
@@ -57,11 +48,13 @@ app.patch('/users/me/avatar', users.updateAvatar);
 // The following route deletes a card by ID using the database.
 app.delete('/cards/:cardId', cards.deleteCardById);
 
-// The following route likes a card by ID using the database.
-app.put('/cards/:cardId/likes', cards.likeCard);
+// Handle 404 errors
+app.use((req, res) => {
+  res.status(404).send({ error: 'Not found' });
+});
 
-// The following route unlikes a card by ID using the database.
-app.delete('/cards/:cardId/likes', cards.unlikeCard);
-
-// The following route gets a card by ID using the database.
-app.use('/cards', cardsRouter);
+// Handle other errors
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send({ error: 'Internal server error' });
+});

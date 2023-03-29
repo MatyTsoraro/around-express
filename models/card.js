@@ -36,4 +36,3 @@ const cardSchema = new mongoose.Schema({
 
 module.exports = mongoose.model('card', cardSchema);
 
-module.exports = readCards;
