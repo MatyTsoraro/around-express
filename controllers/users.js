@@ -1,64 +1,94 @@
-// Import express and create a router object
-const express = require('express');
-const router = express.Router();
-
-// Import the user model
 const User = require('../models/user');
+const { customError } = require('../utils/consts');
 
-
-// GET /users - returns all users
-router.get('/users', (req, res) => {
-  // Find all users in the database
+const getUsers = (req, res) => {
   User.find({})
-    .then(users => {
-      // Send the users as a JSON response
-      res.json(users);
-    })
-    .catch(err => {
-      // Handle any errors
-      res.status(500).json({ message: err.message });
-    });
-});
-
-// GET /users/:userId - returns a user by _id
-router.get('/users/:userId', (req, res) => {
-  // Get the user id from the request parameters
-  const userId = req.params.userId;
-  // Find the user by id in the database
+    .then((users) => res.status(200).send({ data: users }))
+    .catch(() => customError(res, 500, 'We have encountered an error'));
+};
+const getUser = (req, res) => {
+  const { userId } = req.params;
   User.findById(userId)
-    .then(user => {
-      // Check if the user exists
-      if (user) {
-        // Send the user as a JSON response
-        res.json(user);
+    .orFail(() => {
+      const error = new Error('User Not Found');
+      error.status = 404;
+      throw error;
+    })
+    .then((user) => {
+      res.status(200).send({ data: user });
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        customError(res, 400, 'User ID not found');
+      } else if (err.type === 404) {
+        customError(res, 404, 'We have encountered an error');
       } else {
-        // Send a 404 error if the user is not found
-        res.status(404).json({ message: 'User not found' });
+        customError(res, 500, 'We have encountered an error');
       }
-    })
-    .catch(err => {
-      // Handle any errors
-      res.status(500).json({ message: err.message });
     });
-});
-
-// POST /users - creates a new user
-router.post('/users', (req, res) => {
-  // Get the user data from the request body
+};
+const createUser = (req, res) => {
   const { name, about, avatar } = req.body;
-  // Create a new user instance with the data
-  const user = new User({ name, about, avatar });
-  // Save the user to the database
-  user.save()
-    .then(user => {
-      // Send the created user as a JSON response
-      res.status(201).json(user);
-    })
-    .catch(err => {
-      // Handle any errors
-      res.status(400).json({ message: err.message });
+  User.create({ name, about, avatar })
+    .then((user) => res.status(201).send({ data: user }))
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(400).send({
+          message: `${Object.values(err.errors)
+            .map((error) => error.message)
+            .join(', ')}`,
+        });
+      } else {
+        customError(res, 500, 'We have encountered an error');
+      }
     });
-});
+};
 
-// Export the router object
-module.exports = router;
+const updateUserData = (req, res) => {
+  const id = req.user._id;
+  const { name, about, avatar } = req.body;
+  User.findByIdAndUpdate(id, { name, about, avatar }, { runValidators: true })
+    .orFail(() => {
+      const error = new Error('Invalid user id');
+
+      error.status = 404;
+
+      throw error;
+    })
+    .then((user) => res.send({ data: user }))
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        customError(res, 400, 'User ID not found');
+      } else if (err.status === 404) {
+        customError(res, 404, 'Requested resource not found');
+      } else {
+        customError(res, 500, 'We have encountered an error');
+      }
+    });
+};
+
+const updateUser = (req, res) => {
+  const { name, about } = req.body;
+
+  if (!name || !about) {
+    return customError(res, 400, 'Please update these fields name+about');
+  }
+  return updateUserData(req, res);
+};
+
+const updateAvatar = (req, res) => {
+  const { avatar } = req.body;
+
+  if (!avatar) {
+    return customError(res, 400, 'Please update avatar');
+  }
+  return updateUserData(req, res);
+};
+
+module.exports = {
+  getUsers,
+  getUser,
+  createUser,
+  updateUser,
+  updateAvatar,
+};
