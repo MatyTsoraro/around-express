@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
-const { urlRegex } = require('../utils/consts');
+const validator = require('validator');
+// const { urlRegex } = require('../utils/consts');
 
 const cardSchema = new mongoose.Schema(
   {
@@ -12,12 +13,10 @@ const cardSchema = new mongoose.Schema(
     link: {
       type: String,
       required: [true, 'The "Link" field must be filled in.'],
-      validate: {
-        validator(value) {
-          return urlRegex.test(value);
-        },
+      validate: validator({
+        validator: 'isURL',
         message: 'Invalid URL',
-      },
+      }),
     },
     owner: {
       type: mongoose.Schema.Types.ObjectId,

@@ -8,5 +8,13 @@
   "parser": "@babel/eslint-parser",
   "parserOptions": {
     "requireConfigFile": false
+  },
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "extensions": [".js", ".jsx"]
+      }
+    }
   }
 }
+

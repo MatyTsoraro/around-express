@@ -2,13 +2,13 @@ const Card = require('../models/card');
 const { customError } = require('../utils/consts');
 
 // GET
-
 const getCards = (req, res) => {
   Card.find({})
     .populate('owner')
     .then((cards) => res.status(200).send({ data: cards }))
     .catch(() => customError(res, 500, 'We have encountered an error'));
 };
+
 // POST
 const createCard = (req, res) => {
   const { name, link, likes } = req.body;
@@ -37,23 +37,24 @@ const createCard = (req, res) => {
 const deleteCard = (req, res) => {
   const { cardId } = req.params;
 
-  Card.deleteOne({ cardId })
+  Card.deleteOne({ _id: cardId })
     .orFail(() => {
-      const error = new Error('no Card found for the specifed id');
-      error.statusCode = 404;
+      const error = new Error('Card is not found');
+      error.status = 404;
       throw error;
     })
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        customError(res, 400, 'Invaild Card ID');
-      } else if (err.statusCode === 404) {
-        customError(res, 404, err.message);
+        customError(res, 400, 'Card id is incorrect');
+      } else if (err.status === 404) {
+        customError(res, 404, 'Card not found');
       } else {
         customError(res, 500, 'We have encountered an error');
       }
     });
 };
+
 const updateLikes = (req, res, operator) => {
   const { cardId } = req.params;
   const { _id } = req.user;
@@ -66,7 +67,6 @@ const updateLikes = (req, res, operator) => {
     .orFail(() => {
       const error = new Error('Card is not found');
       error.status = 404;
-
       throw error;
     })
     .then((card) => res.send({ data: card }))
@@ -74,16 +74,15 @@ const updateLikes = (req, res, operator) => {
       if (err.name === 'CastError') {
         customError(res, 400, 'Card id is incorrect');
       } else if (err.status === 404) {
-        customError(res, 404, 'Invalid user id');
+        customError(res, 404, 'Card not found');
       } else {
         customError(res, 500, 'Something went wrong');
       }
     });
 };
 
-const likeCard = (req, res) => updateLikes(req, res, { $addToSet: {} });
-
-const unlikeCard = (req, res) => updateLikes(req, res, { $pull: {} });
+const likeCard = (req, res) => updateLikes(req, res, '$addToSet');
+const unlikeCard = (req, res) => updateLikes(req, res, '$pull');
 
 module.exports = {
   getCards,
