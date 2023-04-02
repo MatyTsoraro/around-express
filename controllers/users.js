@@ -48,8 +48,27 @@ const createUser = (req, res) => {
 
 const updateUserData = (req, res) => {
   const id = req.user._id;
-  const { name, about, avatar } = req.body;
-  User.findByIdAndUpdate(id, { name, about, avatar }, { runValidators: true })
+  const { name, about } = req.body;
+  User.findByIdAndUpdate(id, { name, about }, { new: true, runValidators: true })
+    .orFail(() => new Error('User Not Found'))
+    .then((user) => res.send({ data: user }))
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        customError(res, 400, err.message);
+      } else if (err.name === 'CastError') {
+        customError(res, 400, 'Invalid User ID');
+      } else if (err.message === 'User Not Found') {
+        customError(res, 404, err.message);
+      } else {
+        customError(res, 500, 'We have encountered an error');
+      }
+    });
+};
+
+const updateAvatar = (req, res) => {
+  const id = req.user._id;
+  const { avatar } = req.body;
+  User.findByIdAndUpdate(id, { avatar }, { new: true, runValidators: true })
     .orFail(() => new Error('User Not Found'))
     .then((user) => res.send({ data: user }))
     .catch((err) => {
@@ -70,4 +89,5 @@ module.exports = {
   getUser,
   createUser,
   updateUserData,
+  updateAvatar,
 };
