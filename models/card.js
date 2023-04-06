@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const validator = require('validator');
+const { urlRegex } = require('../utils/consts');
 
 const cardSchema = new mongoose.Schema(
   {
@@ -7,14 +7,14 @@ const cardSchema = new mongoose.Schema(
       type: String,
       required: [true, 'The "name" field must be filled in.'],
       minlength: [2, 'The minimum length of name is 2'],
-      maxlength: [30, 'The maximum length of name is 30'],
+      maxlength: [30, 'The maximum length of name is 2'],
     },
     link: {
       type: String,
       required: [true, 'The "Link" field must be filled in.'],
       validate: {
-        validator(v) {
-          return validator.isURL(v);
+        validator(value) {
+          return urlRegex.test(value);
         },
         message: 'Invalid URL',
       },
