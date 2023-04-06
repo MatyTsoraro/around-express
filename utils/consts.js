@@ -2,6 +2,12 @@ const urlRegex = /(http(s)?:\/\/.)?(www.)?[-a-zA-Z0-9@:%._+~#=]{2,256}.[a-z]{2,6
 
 const customError = (res, number, txt) => res.status(number).send({ message: txt });
 
+const HTTP_STATUS_CODES = {
+  OK: 200,
+  CREATED: 201,
+  BAD_REQUEST: 400,
+}
+
 module.exports = {
   customError,
   urlRegex,

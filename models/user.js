@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { urlRegex } = require('../utils/consts');
+const validator = require('validator'); // Import validator library
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -18,8 +18,8 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'The "Avatar" field must be filled in.'],
     validate: {
-      validator(value) {
-        return urlRegex.test(value);
+      validator: (value) => {
+        return validator.isURL(value); // Use validator.isURL to validate URLs
       },
       message: 'Invalid URL',
     },
