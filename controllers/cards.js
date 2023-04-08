@@ -37,32 +37,6 @@ const deleteCard = (req, res) => {
 
   Card.deleteOne({ _id: cardId })
     .orFail(() => {
-      const error = new Error('no Card found for the specified id');
-      error.statusCode = HTTP_STATUS_CODES.NOT_FOUND;
-      throw error;
-    })
-    .then((card) => res.send({ data: card }))
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        customError(res, HTTP_STATUS_CODES.BAD_REQUEST, 'Invalid Card ID');
-      } else if (err.statusCode === HTTP_STATUS_CODES.NOT_FOUND) {
-        customError(res, HTTP_STATUS_CODES.NOT_FOUND, err.message);
-      } else {
-        customError(res, HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR, 'We have encountered an error');
-      }
-    });
-};
-
-const updateLikes = (req, res, operator) => {
-  const { cardId } = req.params;
-  const { _id } = req.user;
-
-  Card.findByIdAndUpdate(
-    cardId, // searches for the card on the database
-    { [operator]: { likes: _id } }, // $pull / $addToSet
-    { new: true },
-  )
-    .orFail(() => {
       const error = new Error('Card is not found');
       error.status = HTTP_STATUS_CODES.NOT_FOUND;
       throw error;
@@ -72,12 +46,39 @@ const updateLikes = (req, res, operator) => {
       if (err.name === 'CastError') {
         customError(res, HTTP_STATUS_CODES.BAD_REQUEST, 'Card id is incorrect');
       } else if (err.status === HTTP_STATUS_CODES.NOT_FOUND) {
-        customError(res, HTTP_STATUS_CODES.NOT_FOUND, 'Invalid user id');
+        customError(res, HTTP_STATUS_CODES.NOT_FOUND, 'Card is not found');
       } else {
         customError(res, HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR, 'Something went wrong');
       }
     });
 };
+
+const updateLikes = (req, res, operator) => {
+  const { cardId } = req.params;
+  const { _id } = req.user;
+
+  Card.findByIdAndUpdate(
+    cardId,
+    { [operator]: { likes: _id } },
+    { new: true },
+  )
+    .orFail(() => {
+      const error = new Error('Card not found');
+      error.status = HTTP_STATUS_CODES.NOT_FOUND;
+      throw error;
+    })
+    .then((card) => res.send({ data: card }))
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        customError(res, HTTP_STATUS_CODES.BAD_REQUEST, 'Invalid card id');
+      } else if (err.status === HTTP_STATUS_CODES.NOT_FOUND) {
+        customError(res, HTTP_STATUS_CODES.NOT_FOUND, 'Card not found');
+      } else {
+        customError(res, HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR, 'Something went wrong');
+      }
+    });
+};
+
 
 const likeCard = (req, res) => updateLikes(req, res, '$addToSet');
 

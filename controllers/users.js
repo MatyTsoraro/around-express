@@ -1,10 +1,10 @@
 const User = require('../models/user');
-const { customError } = require('../utils/consts');
+const { customError, HTTP_STATUS_CODES } = require('../utils/consts');
 
 const getUsers = (req, res) => {
   User.find({})
-    .then((users) => res.status(200).send({ data: users }))
-    .catch(() => customError(res, 500, 'We have encountered an error'));
+    .then((users) => res.status(HTTP_STATUS_CODES.OK).send({ data: users }))
+    .catch(() => customError(res, HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR, 'We have encountered an error'));
 };
 
 const getUser = (req, res) => {
@@ -12,19 +12,19 @@ const getUser = (req, res) => {
   User.findById(userId)
     .orFail(() => {
       const error = new Error('User Not Found');
-      error.status = 404;
+      error.status = HTTP_STATUS_CODES.NOT_FOUND;
       throw error;
     })
     .then((user) => {
-      res.status(200).send({ data: user });
+      res.status(HTTP_STATUS_CODES.OK).send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        customError(res, 400, 'Invalid user ID');
-      } else if (err.status === 404) {
-        customError(res, 404, 'User ID not found');
+        customError(res, HTTP_STATUS_CODES.BAD_REQUEST, 'Invalid user ID');
+      } else if (err.status === HTTP_STATUS_CODES.NOT_FOUND) {
+        customError(res, HTTP_STATUS_CODES.NOT_FOUND, 'User ID not found');
       } else {
-        customError(res, 500, 'We have encountered an error');
+        customError(res, HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR, 'We have encountered an error');
       }
     });
 };
@@ -32,16 +32,16 @@ const getUser = (req, res) => {
 const createUser = (req, res) => {
   const { name, about, avatar } = req.body;
   User.create({ name, about, avatar })
-    .then((user) => res.status(201).send({ data: user }))
+    .then((user) => res.status(HTTP_STATUS_CODES.CREATED).send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(400).send({
+        res.status(HTTP_STATUS_CODES.BAD_REQUEST).send({
           message: `${Object.values(err.errors)
             .map((error) => error.message)
             .join(', ')}`,
         });
       } else {
-        customError(res, 500, 'We have encountered an error');
+        customError(res, HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR, 'We have encountered an error');
       }
     });
 };
@@ -52,17 +52,17 @@ const updateUserData = (req, res) => {
   User.findByIdAndUpdate(id, { name, about, avatar }, { runValidators: true })
     .orFail(() => {
       const error = new Error('User ID not found');
-      error.status = 404;
+      error.status = HTTP_STATUS_CODES.NOT_FOUND;
       throw error;
     })
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        customError(res, 400, 'Invalid user ID');
-      } else if (err.status === 404) {
-        customError(res, 404, 'User ID not found');
+        customError(res, HTTP_STATUS_CODES.BAD_REQUEST, 'Invalid user ID');
+      } else if (err.status === HTTP_STATUS_CODES.NOT_FOUND) {
+        customError(res, HTTP_STATUS_CODES.NOT_FOUND, 'User ID not found');
       } else {
-        customError(res, 500, 'We have encountered an error');
+        customError(res, HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR, 'We have encountered an error');
       }
     });
 };
@@ -70,7 +70,7 @@ const updateUserData = (req, res) => {
 const updateUser = (req, res) => {
   const { name, about } = req.body;
   if (!name || !about) {
-    return customError(res, 400, 'Please update both name and about fields');
+    return customError(res, HTTP_STATUS_CODES.BAD_REQUEST, 'Please update both name and about fields');
   }
   return updateUserData(req, res);
 };
@@ -78,7 +78,7 @@ const updateUser = (req, res) => {
 const updateAvatar = (req, res) => {
   const { avatar } = req.body;
   if (!avatar) {
-    return customError(res, 400, 'Please update avatar');
+    return customError(res, HTTP_STATUS_CODES.BAD_REQUEST, 'Please update avatar');
   }
   return updateUserData(req, res);
 };
